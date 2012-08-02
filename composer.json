@@ -1,0 +1,29 @@
+{
+    "name": "joshuaestes/biga-framework-bundle",
+    "type": "symfony-bundle",
+    "description": "BigaFrameworkBundle for Symfony Biga Edition",
+    "keywords": ["biga","symfony2","framework"],
+    "homepage": "https://github.com/JoshuaEstes/biga-framework-bundle",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Joshua Estes",
+            "email": "Joshua.Estes@ScenicCityLabs.com",
+            "homepage": "http://joshuaestes.me",
+            "role": "Lead Developer"
+        }
+    ],
+    "support": {
+        "email": "JoshuaEstes+BigaFrameworkBundle@ScenicCityLabs.com",
+        "issues": "https://github.com/JoshuaEstes/biga-framework-bundle/issues",
+        "wiki": "https://github.com/JoshuaEstes/biga-framework-bundle/wiki",
+        "source": "https://github.com/JoshuaEstes/biga-framework-bundle"
+    },
+    "require": {
+        "php": ">=5.3.3"
+    },
+    "autoload": {
+        "psr-0": { "BigaFrameworkBundle": "" }
+    },
+    "target-dir": "BigaFrameworkBundle"
+}
