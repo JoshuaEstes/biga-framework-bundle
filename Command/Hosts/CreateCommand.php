@@ -26,6 +26,12 @@ class CreateCommand extends ContainerAwareCommand
 
     protected function execute(InputInterface $input, OutputInterface $output)
     {
+        foreach(array('host') as $option) {
+            if (null === $input->getOption($option)) {
+                throw new \RuntimeException(sprintf('The "%s" option must be provided.', $option));
+            }
+        }
+
         $command = sprintf("echo \"%s %s\" | sudo tee -a %s", $input->getOption('ip_address'), $input->getOption('host'), $input->getOption('hosts_file'));
         $process = new Process($command);
         $process->run(function($type, $buffer) use($output){
@@ -50,7 +56,7 @@ class CreateCommand extends ContainerAwareCommand
             '',
         ));
 
-        $hosts_file = $dialog->ask($output, $this->getQuestion("Location of hosts file", $input->getOption('hosts_file')), $input->getOption('hosts_file'));
+        $hosts_file = $dialog->askAndValidate($output, $this->getQuestion("Location of hosts file", $input->getOption('hosts_file')), 'BigaFrameworkBundle\\Command\\Validators::validateHostsFile', false, $input->getOption('hosts_file'));
         $input->setOption('hosts_file', $hosts_file);
 
         // IP Address
@@ -59,7 +65,7 @@ class CreateCommand extends ContainerAwareCommand
             'Enter the IP Address, this can be any valid IP address.',
             '',
         ));
-        $ip_address = $dialog->ask($output, $this->getQuestion("IP Address", $input->getOption('ip_address')), $input->getOption('ip_address'));
+        $ip_address = $dialog->askAndValidate($output, $this->getQuestion("IP Address", $input->getOption('ip_address')), 'BigaFrameworkBundle\\Command\\Validators::validateIPAddress', false, $input->getOption('ip_address'));
         $input->setOption('ip_address', $ip_address);
 
         // host
@@ -71,7 +77,7 @@ class CreateCommand extends ContainerAwareCommand
             '<comment>biga.local biga</comment>',
             '',
         ));
-        $host = $dialog->askAndValidate($output, $this->getQuestion("Host(s)", $input->getOption('host')), array($this, 'validateHost'), false, $input->getOption('host'));
+        $host = $dialog->askAndValidate($output, $this->getQuestion("Host(s)", $input->getOption('host')), 'BigaFrameworkBundle\\Command\\Validators::validateHost', false, $input->getOption('host'));
         $input->setOption('host', $host);
     }
 
@@ -90,12 +96,4 @@ class CreateCommand extends ContainerAwareCommand
         return sprintf('<info>%s</info> [<comment>%s</comment>]: ', $question, $default);
     }
 
-    public function validateHost($host)
-    {
-        if (null === $host) {
-            throw new \InvalidArgumentException('Invalid host');
-        }
-
-        return $host;
-    }
 }
