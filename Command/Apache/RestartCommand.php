@@ -3,10 +3,9 @@
 namespace BigaFrameworkBundle\Command\Apache;
 
 use Symfony\Bundle\FrameworkBundle\Command\ContainerAwareCommand;
-use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
-use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
+use Symfony\Component\Process\Process;
 
 class RestartCommand extends ContainerAwareCommand
 {
@@ -20,6 +19,38 @@ class RestartCommand extends ContainerAwareCommand
 
     protected function execute(InputInterface $input, OutputInterface $output)
     {
+        $dialog = $this->getDialogHelper();
+
+        if ($input->isInteractive()) {
+            if (!$dialog->askConfirmation($output, $dialog->getQuestion('Are you sure you want to restart apache', 'yes', '?'), true)) {
+                $output->writeln('<error>Command Aborted</error>');
+                return 1;
+            }
+        }
+
+        $process = new Process(<<<EOF
+if [ -e /etc/init.d/apache2 ]; then
+    sudo /etc/init.d/apache2 restart
+elif [ "$(which apachectl)" ]; then
+    sudo $(which apachectl) -k restart
+fi
+EOF
+);
+        $process->run(function($type, $buffer) use($output) {
+            $style = 'info';
+            if ('err' === $type) {
+                $style = 'error';
+            }
+            $output->writeln(sprintf('<%s>%s</%s>', $style, $buffer, $style));
+        });
     }
 
+    protected function getDialogHelper()
+    {
+        $dialog = $this->getHelperSet()->get('dialog');
+        if (!$dialog || get_class($dialog) !== 'BigaFrameworkBundle\Helper\DialogHelper') {
+            $this->getHelperSet()->set($dialog = new \BigaFrameworkBundle\Helper\DialogHelper());
+        }
+        return $dialog;
+    }
 }
