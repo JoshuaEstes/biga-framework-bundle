@@ -7,6 +7,7 @@ use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
+use Symfony\Component\Process\Process;
 use Symfony\Component\Filesystem\Filesystem;
 use Symfony\Component\Yaml\Yaml;
 
@@ -38,6 +39,10 @@ EOF
             $filesystem = new Filesystem();
             $filesystem->copy($parametersDistFile, $parametersFile);
         }
+
+        // This will ignore changes to your parameters.yml file
+        $process = new Process('git update-index --assume-unchanged app/config/parameters.yml');
+        $process->run();
     }
 
     protected function execute(InputInterface $input, OutputInterface $output)
@@ -57,7 +62,7 @@ EOF
             '',
         ));
 
-        if ($dialog->askConfirmation($output, $this->getQuestion("Do you want to generate a secret", 'Y/n'), true)) {
+        if ($dialog->askConfirmation($output, $this->getQuestion("Do you want to generate a secret?", 'Y/n'), true)) {
             $parameters = Yaml::parse(file_get_contents($this->getConfigFile('parameters.yml')));
             $parameters['parameters'] = array_merge($parameters['parameters'], array(
                 'secret' => md5(uniqid(time(),true)),
@@ -71,7 +76,26 @@ EOF
             '',
         ));
 
-        if ($dialog->askConfirmation($output, $this->getQuestion("Locale", 'en'), 'en')) {
+        $locale = $dialog->askAndValidate($output, $this->getQuestion("locale", 'en'), 'BigaFrameworkBundle\\Command\\Validators::validateLocale', false, 'en');
+
+        // Database
+        $output->writeln(array(
+            '',
+            '',
+        ));
+        if ($dialog->askConfirmation($output, $this->getQuestion('Do you want to setup the database?', 'Y/n'), true)) {
+            $configureDatabaseCommand = $this->getApplication()->find('configure:database');
+            $configureDatabaseCommand->run($input, $output);
+        }
+
+        // Mailer
+        $output->writeln(array(
+            '',
+            '',
+        ));
+        if ($dialog->askConfirmation($output, $this->getQuestion('Do you want to setup the mailer?', 'Y/n'), true)) {
+            $configureMailerCommand = $this->getApplication()->find('configure:mailer');
+            $configureMailerCommand->run($input, $output);
         }
     }
 

@@ -92,4 +92,9 @@ class Validators
     {
         return $password;
     }
+
+    public static function validateLocale($locale)
+    {
+        return $locale;
+    }
 }
