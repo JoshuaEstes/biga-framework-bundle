@@ -20,7 +20,8 @@
         "source": "https://github.com/JoshuaEstes/biga-framework-bundle"
     },
     "require": {
-        "php": ">=5.3.3"
+        "php": ">=5.3.3",
+        "sensio/generator-bundle": "dev-master"
     },
     "autoload": {
         "psr-0": { "BigaFrameworkBundle": "" }
