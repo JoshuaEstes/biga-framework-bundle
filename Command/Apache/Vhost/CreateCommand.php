@@ -20,7 +20,8 @@ class CreateCommand extends ContainerAwareCommand
                 new InputOption('port', '', InputOption::VALUE_REQUIRED, 'Port the server will be listening on', '80'),
                 new InputOption('document_root', '', InputOption::VALUE_REQUIRED, 'Full path to the document root'),
                 new InputOption('priority', '', InputOption::VALUE_REQUIRED, 'Priority, smaller the number the sooner it will be parsed', '000'),
-                new InputOption('sites_available_dir', '', InputOption::VALUE_REQUIRED, 'Location where you will place the vhost file', '/etc/apache2/sites-available'),
+                new InputOption('sites_available_dir', '', InputOption::VALUE_REQUIRED, 'Location where you will place the vhost file', '/etc/apache2/sites-enabled'),
+                new InputOption('restart', '', InputOption::VALUE_NONE, 'Restarts apache after you create the vhost'),
             ))
             ->setName('apache:vhost:create')
             ->setDescription('Create an apache vhost file');
@@ -54,6 +55,13 @@ class CreateCommand extends ContainerAwareCommand
             $style = 'err' === $type ? 'error' : 'info';
             $output->writeln(sprintf("<%s>%s</%s>", $style, $buffer, $style));
         });
+
+        if ($this->getOption('restart')) {
+            $this
+                ->getApplication()
+                ->find('apache:restart')
+                ->run(array_merge($input, array('-n' => true)), $output);
+        }
     }
 
     protected function interact(InputInterface $input, OutputInterface $output)
