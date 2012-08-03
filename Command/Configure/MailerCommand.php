@@ -7,6 +7,7 @@ use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
+use Symfony\Component\Yaml\Yaml;
 
 class MailerCommand extends ContainerAwareCommand
 {
@@ -35,14 +36,14 @@ EOF
         }
 
         $parametersArray = Yaml::parse($parametersFile);
-        $updatedParametersArray = array_merge($parametersArray['parameters'],array(
+        $parametersArray['parameters'] = array_merge($parametersArray['parameters'],array(
             'mailer_transport' => $input->getOption('transport'),
             'mailer_host'      => $input->getOption('host'),
             'mailer_user'      => $input->getOption('user'),
             'mailer_password'  => $input->getOption('password'),
         ));
 
-        file_put_contents($parametersFile, Yaml::dump($updatedParametersArray));
+        file_put_contents($parametersFile, Yaml::dump($parametersArray));
 
         $output->writeln('Parameters file has been updated.');
     }

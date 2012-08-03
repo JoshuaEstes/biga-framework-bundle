@@ -44,7 +44,7 @@ EOF
         }
 
         $parametersArray = Yaml::parse($parametersFile);
-        $updatedParametersArray = array_merge($parametersArray['parameters'],array(
+        $parametersArray['parameters'] = array_merge($parametersArray['parameters'],array(
             'database_driver'   => $input->getOption('driver'),
             'database_host'     => $input->getOption('host'),
             'database_port'     => $input->getOption('port'),
@@ -53,7 +53,7 @@ EOF
             'database_password' => $input->getOption('password'),
         ));
 
-        file_put_contents($parametersFile, Yaml::dump($updatedParametersArray));
+        file_put_contents($parametersFile, Yaml::dump($parametersArray));
 
         $output->writeln('Parameters file has been updated.');
     }
