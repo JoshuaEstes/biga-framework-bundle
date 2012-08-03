@@ -20,7 +20,8 @@ class ProjectCommand extends ContainerAwareCommand
 This command only really needs to be run once. After that
 everything should be setup. This command takes care of updating
 your parameters.yml file, adding an entry into your hosts file,
-and creating a vhost entry for you.
+and creating a vhost entry for you. This will also create a crsf
+token for you.
 EOF
             );
     }
