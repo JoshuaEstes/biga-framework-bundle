@@ -50,7 +50,7 @@ EOF
         $dialog    = $this->getDialogHelper();
         $formatter = $this->getFormatterHelper();
 
-        $dialog->writeSection('Biga Initialize Project');
+        $dialog->writeSection($output, 'Biga Initialize Project');
 
         // Secret
         $output->writeln(array(
