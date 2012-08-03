@@ -1,0 +1,16 @@
+####
+#
+# This config is for Symfony2 on a development box, you
+# may not want to use this on production without some
+# edits to the file.
+#
+<VirtualHost *:%port%>
+    ServerName %server_name%
+    DocumentRoot %document_root%
+    <Directory %document_root%>
+        Options +Indexes +FollowSymlinks +MultiViews
+        AllowOverride All
+        Order allow,deny
+        allow from all
+    </Directory>
+</VirtualHost>
