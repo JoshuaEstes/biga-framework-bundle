@@ -47,14 +47,10 @@ EOF
 
     protected function execute(InputInterface $input, OutputInterface $output)
     {
-    }
-
-    protected function interact(InputInterface $input, OutputInterface $output)
-    {
         $dialog    = $this->getDialogHelper();
         $formatter = $this->getFormatterHelper();
 
-        $output->writeln(array('',$formatter->formatBlock('Biga Initialize Project', 'bg=blue;fg=white', true),''));
+        $dialog->writeSection('Biga Initialize Project');
 
         // Secret
         $output->writeln(array(
@@ -62,7 +58,7 @@ EOF
             '',
         ));
 
-        if ($dialog->askConfirmation($output, $this->getQuestion("Do you want to generate a secret?", 'Y/n'), true)) {
+        if ($dialog->askConfirmation($output, $dialog->getQuestion("Do you want to generate a secret", 'yes', '?'), true)) {
             $parameters = Yaml::parse(file_get_contents($this->getConfigFile('parameters.yml')));
             $parameters['parameters'] = array_merge($parameters['parameters'], array(
                 'secret' => md5(uniqid(time(),true)),
@@ -76,16 +72,18 @@ EOF
             '',
         ));
 
-        $locale = $dialog->askAndValidate($output, $this->getQuestion("locale", 'en'), 'BigaFrameworkBundle\\Command\\Validators::validateLocale', false, 'en');
+        $locale = $dialog->askAndValidate($output, $dialog->getQuestion("Locale", 'en'), 'BigaFrameworkBundle\\Command\\Validators::validateLocale', false, 'en');
 
         // Database
         $output->writeln(array(
             '',
             '',
         ));
-        if ($dialog->askConfirmation($output, $this->getQuestion('Do you want to setup the database?', 'Y/n'), true)) {
-            $configureDatabaseCommand = $this->getApplication()->find('configure:database');
-            $configureDatabaseCommand->run($input, $output);
+        if ($dialog->askConfirmation($output, $dialog->getQuestion('Do you want to setup the database', 'yes', '?'), true)) {
+            $this
+                ->getApplication()
+                ->find('configure:database')
+                ->run($input, $output);
         }
 
         // Mailer
@@ -93,15 +91,45 @@ EOF
             '',
             '',
         ));
-        if ($dialog->askConfirmation($output, $this->getQuestion('Do you want to setup the mailer?', 'Y/n'), true)) {
-            $configureMailerCommand = $this->getApplication()->find('configure:mailer');
-            $configureMailerCommand->run($input, $output);
+        if ($dialog->askConfirmation($output, $dialog->getQuestion('Do you want to setup the mailer', 'yes', '?'), true)) {
+            $this
+                ->getApplication()
+                ->find('configure:mailer')
+                ->run($input, $output);
         }
+
+        // Web server
+        $output->writeln(array(
+            '',
+            '',
+            '',
+        ));
+
+        if ($dialog->askConfirmation($output, $dialog->getQuestion('Do you want to create an apache vhost', 'yes', '?'), true)) {
+            $this
+                ->getApplication()
+                ->find('apache:vhost:create')
+                ->run($input, $output);
+            if ($dialog->askConfirmation($output, $dialog->getQuestion('Do you want to restart apache', 'yes', '?'), true)) {
+                $this
+                    ->getApplication()
+                    ->find('apache:restart')
+                    ->run(array_merge($input, array('-n' => true)), $output);
+            }
+        }
+    }
+
+    protected function interact(InputInterface $input, OutputInterface $output)
+    {
     }
 
     protected function getDialogHelper()
     {
-        return $this->getHelperSet()->get('dialog');
+        $dialog = $this->getHelperSet()->get('dialog');
+        if (!$dialog || get_class($dialog) !== 'BigaFrameworkBundle\Helper\DialogHelper') {
+            $this->getHelperSet()->set($dialog = new \BigaFrameworkBundle\Helper\DialogHelper());
+        }
+        return $dialog;
     }
 
     protected function getFormatterHelper()
