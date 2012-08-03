@@ -21,7 +21,14 @@ class CreateCommand extends ContainerAwareCommand
                 new InputOption('host', '', InputOption::VALUE_REQUIRED, 'The host name you want. If you want more than one, please use a space between them'),
             ))
             ->setName('hosts:create')
-            ->setDescription('Add an entry in your hosts file');
+            ->setDescription('Add an entry in your hosts file')
+            ->setHelp(<<<EOF
+This command will add an entry in your hosts file. It's setup
+to use the host file in the location that is default on Mac
+and linux machines. If you are on a windows machine, you will
+need to give it a different hosts file location.
+EOF
+            );
     }
 
     protected function execute(InputInterface $input, OutputInterface $output)
