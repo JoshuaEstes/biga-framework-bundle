@@ -38,4 +38,58 @@ class Validators
     {
         return $priority;
     }
+
+    public static function validateDatabaseDriver($driver)
+    {
+        return $driver;
+    }
+
+    public static function validateDatabaseHost($host)
+    {
+        return $host;
+    }
+
+    public static function validateDatabasePort($port)
+    {
+        return $port;
+    }
+
+    public static function validateDatabaseName($name)
+    {
+        return $name;
+    }
+
+    public static function validateDatabaseUsername($username)
+    {
+        return $username;
+    }
+
+    public static function validateDatabasePassword($password)
+    {
+        if (null === $password) {
+            throw new \InvalidArgumentException('You must provide a password');
+        }
+
+        return $password;
+    }
+
+    public static function validateMailerTransport($transport)
+    {
+        return $transport;
+    }
+
+    public static function validateMailerHost($host)
+    {
+        return $host;
+    }
+
+    public static function validateMailerUsername($username)
+    {
+        return $username;
+    }
+
+    public static function validateMailerPassword($password)
+    {
+        return $password;
+    }
 }
