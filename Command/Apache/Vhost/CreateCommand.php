@@ -6,6 +6,7 @@ use Symfony\Bundle\FrameworkBundle\Command\ContainerAwareCommand;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
+use Symfony\Component\Console\Input\ArrayInput;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Process\Process;
 
@@ -56,11 +57,11 @@ class CreateCommand extends ContainerAwareCommand
             $output->writeln(sprintf("<%s>%s</%s>", $style, $buffer, $style));
         });
 
-        if ($this->getOption('restart')) {
+        if ($input->getOption('restart')) {
             $this
                 ->getApplication()
                 ->find('apache:restart')
-                ->run(array_merge($input, array('-n' => true)), $output);
+                ->run(new ArrayInput(array('apache:restart', '-n' => true)), $output);
         }
     }
 
