@@ -5,6 +5,7 @@
     "keywords": ["biga","symfony2","framework"],
     "homepage": "https://github.com/JoshuaEstes/biga-framework-bundle",
     "license": "MIT",
+    "minimum-stability": "dev",
     "authors": [
         {
             "name": "Joshua Estes",
@@ -21,7 +22,11 @@
     },
     "require": {
         "php": ">=5.3.3",
+        "symfony/console": "dev-master",
         "sensio/generator-bundle": "dev-master"
+    },
+    "require-dev": {
+        "mikey179/vfsStream": "dev-master"
     },
     "autoload": {
         "psr-0": { "BigaFrameworkBundle": "" }
