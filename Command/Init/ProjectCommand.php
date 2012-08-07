@@ -35,13 +35,12 @@ EOF
             throw new \RuntimeException('This command must be run in interactive mode.');
         }
 
-        if (!is_file($this->getConfigFile('parameters.yml')) && is_file($this->getConfigFile('parameters.yml.dist'))) {
-            $filesystem = new Filesystem();
-            $filesystem->copy($parametersDistFile, $parametersFile);
-        }
-
         // This will ignore changes to your parameters.yml file
         $process = new Process('git update-index --assume-unchanged app/config/parameters.yml');
+        $process->run();
+
+        // Make sure the directories are set to correct permissions
+        $process = new Process(sprintf('chmod 0777 app/{cache,log}'));
         $process->run();
     }
 
