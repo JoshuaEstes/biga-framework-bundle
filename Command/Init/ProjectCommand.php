@@ -1,5 +1,12 @@
 <?php
 
+/**
+ * This file is part of the Biga Framework Bundle
+ *
+ * For the full copyright and license information, please view the LICENSE
+ * file that was distributed with this source code
+ */
+
 namespace BigaFrameworkBundle\Command\Init;
 
 use Symfony\Bundle\FrameworkBundle\Command\ContainerAwareCommand;
@@ -11,6 +18,12 @@ use Symfony\Component\Process\Process;
 use Symfony\Component\Filesystem\Filesystem;
 use Symfony\Component\Yaml\Yaml;
 
+/**
+ * Initialize a symfony 2 project for the first time. This will take care
+ * of most tasks that are done by hand.
+ *
+ * @author Joshua Estes
+ */
 class ProjectCommand extends ContainerAwareCommand
 {
 

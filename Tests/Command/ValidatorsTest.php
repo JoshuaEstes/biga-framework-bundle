@@ -1,9 +1,21 @@
 <?php
 
+/**
+ * This file is part of the Biga Framework Bundle
+ *
+ * For the full copyright and license information, please view the LICENSE
+ * file that was distributed with this source code
+ */
+
 namespace BigaFrameworkBundle\Tests\Command;
 
 use BigaFrameworkBundle\Command\Validators;
 
+/**
+ * Test to make sure the validators are working
+ *
+ * @author Joshua Estes
+ */
 class ValidatorsTest extends \PHPUnit_Framework_TestCase
 {
 
