@@ -6,3 +6,10 @@ BigaFrameworkBundle
 This is part of the Symfony Biga Edition. You should be able to use
 this as a standalone bundle if you want.
 
+Installation
+============
+
+If you would like to include this bundle in your own project, then you
+just need to include it in your composer.json file like so
+
+    composer.phar require joshuaestes/biga-framework-bundle:dev-master
