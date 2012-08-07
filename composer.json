@@ -22,10 +22,12 @@
     },
     "require": {
         "php": ">=5.3.3",
-        "symfony/console": "dev-master",
-        "sensio/generator-bundle": "dev-master"
+        "symfony/framework-bundle": "2.1.*"
     },
     "require-dev": {
+        "symfony/console": "dev-master",
+        "symfony/process": "dev-master",
+        "sensio/generator-bundle": "dev-master",
         "mikey179/vfsStream": "dev-master"
     },
     "autoload": {

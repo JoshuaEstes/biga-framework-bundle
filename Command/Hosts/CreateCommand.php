@@ -31,6 +31,7 @@ class CreateCommand extends ContainerAwareCommand
                 new InputOption('hosts_file', '', InputOption::VALUE_REQUIRED, 'Path to your hosts file, this is different for every OS', '/etc/hosts'),
                 new InputOption('ip_address', '', InputOption::VALUE_REQUIRED, 'IP Address of the server', '127.0.0.1'),
                 new InputOption('host', '', InputOption::VALUE_REQUIRED, 'The host name you want. If you want more than one, please use a space between them'),
+                new InputOption('no_sudo', '', InputOption::VALUE_NONE, 'Append the file without sudo.'),
             ))
             ->setName('hosts:create')
             ->setDescription('Add an entry in your hosts file')
@@ -51,12 +52,21 @@ EOF
             }
         }
 
-        $command = sprintf("echo \"%s %s\" | sudo tee -a %s", $input->getOption('ip_address'), $input->getOption('host'), $input->getOption('hosts_file'));
-        $process = new Process($command);
-        $process->run(function($type, $buffer) use($output){
-            $style = 'err' === $type ? 'error' : 'info';
-            $output->writeln(sprintf("<%s>%s</%s>", $style, $buffer, $style));
-        });
+        if ($input->getOption('no_sudo')) {
+            if (!is_writeable($input->getOption('hosts_file'))) {
+                throw new \RuntimeException('Cannot write to file.');
+            }
+            $handle = fopen($input->getOption('hosts_file'), 'a', false);
+            fwrite($handle, sprintf("%s %s", $input->getOption('ip_address'), $input->getOption('host')));
+            fclose($handle);
+        } else {
+            $command = sprintf("echo \"%s %s\" | sudo tee -a %s", $input->getOption('ip_address'), $input->getOption('host'), $input->getOption('hosts_file'));
+            $process = new Process($command);
+            $process->run(function($type, $buffer) use($output){
+                $style = 'err' === $type ? 'error' : 'info';
+                $output->writeln(sprintf("<%s>%s</%s>", $style, $buffer, $style));
+            });
+        }
     }
 
     protected function interact(InputInterface $input, OutputInterface $output)
