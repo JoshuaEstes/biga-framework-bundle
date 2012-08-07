@@ -11,6 +11,7 @@ namespace BigaFrameworkBundle\Command\Init;
 
 use Symfony\Bundle\FrameworkBundle\Command\ContainerAwareCommand;
 use Symfony\Component\Console\Input\InputArgument;
+use Symfony\Component\Console\Input\ArrayInput;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
@@ -27,6 +28,9 @@ use Symfony\Component\Yaml\Yaml;
 class ProjectCommand extends ContainerAwareCommand
 {
 
+    /**
+     * {@inheritdoc}
+     */
     protected function configure()
     {
         $this
@@ -42,6 +46,9 @@ EOF
             );
     }
 
+    /**
+     * {@inheritdoc}
+     */
     protected function initialize(InputInterface $input, OutputInterface $ouput)
     {
         if (!$input->isInteractive()) {
@@ -57,21 +64,26 @@ EOF
         $process->run();
     }
 
+    /**
+     * {@inheritdoc}
+     */
     protected function execute(InputInterface $input, OutputInterface $output)
     {
-        $dialog    = $this->getDialogHelper();
-        $formatter = $this->getFormatterHelper();
+        $dialog     = $this->getDialogHelper();
+        $formatter  = $this->getFormatterHelper();
+        $parameters = Yaml::parse(file_get_contents($this->getConfigFile('parameters.yml')));
 
         $dialog->writeSection($output, 'Biga Initialize Project');
 
         // Secret
         $output->writeln(array(
             '',
+            'The secret that will be generated is used as the crsf token. It is recommended that you',
+            'generate a token here.',
             '',
         ));
 
         if ($dialog->askConfirmation($output, $dialog->getQuestion("Do you want to generate a secret", 'yes', '?'), true)) {
-            $parameters = Yaml::parse(file_get_contents($this->getConfigFile('parameters.yml')));
             $parameters['parameters'] = array_merge($parameters['parameters'], array(
                 'secret' => md5(uniqid(time(),true)),
             ));
@@ -81,14 +93,22 @@ EOF
         // Locale
         $output->writeln(array(
             '',
+            'The default locale that the framework will use.',
             '',
         ));
 
-        $locale = $dialog->askAndValidate($output, $dialog->getQuestion("Locale", 'en'), 'BigaFrameworkBundle\\Command\\Validators::validateLocale', false, 'en');
+        $locale = $dialog->askAndValidate($output, $dialog->getQuestion("Default Locale", 'en'), 'BigaFrameworkBundle\\Command\\Validators::validateLocale', false, 'en');
+        $parameters['parameters'] = array_merge($parameters['parameters'], array(
+            'locale' => $locale,
+        ));
+        file_put_contents($this->getConfigFile('parameters.yml'), Yaml::dump($parameters));
 
         // Database
         $output->writeln(array(
             '',
+            'You are about to setup the database. If you choose to configure the database then you will be',
+            'able to create the database. However if you skip this part, then you will need to configure',
+            'and create the database manually.',
             '',
         ));
         if ($dialog->askConfirmation($output, $dialog->getQuestion('Do you want to setup the database', 'yes', '?'), true)) {
@@ -96,11 +116,18 @@ EOF
                 ->getApplication()
                 ->find('configure:database')
                 ->run($input, $output);
+            if ($dialog->askConfirmation($output, $dialog->getQuestion('Do you want to create the database', 'yes', '?'), true)) {
+                $this
+                    ->getApplication()
+                    ->find('doctrine:database:create')
+                    ->run($input, $output);
+            }
         }
 
         // Mailer
         $output->writeln(array(
             '',
+            'This will configure the mailer that the framework will use.',
             '',
         ));
         if ($dialog->askConfirmation($output, $dialog->getQuestion('Do you want to setup the mailer', 'yes', '?'), true)) {
@@ -113,7 +140,8 @@ EOF
         // Web server
         $output->writeln(array(
             '',
-            '',
+            'If you are using apache then you can setup a vhost and restart apache here. If you are',
+            'using another web server such as nginx, then please skip this part.',
             '',
         ));
 
@@ -126,13 +154,12 @@ EOF
                 $this
                     ->getApplication()
                     ->find('apache:restart')
-                    ->run(array_merge($input, array('-n' => true)), $output);
+                    ->run(new ArrayInput(array(
+                        'command' => 'apache:restart',
+                        '-n' => true,
+                    )), $output);
             }
         }
-    }
-
-    protected function interact(InputInterface $input, OutputInterface $output)
-    {
     }
 
     protected function getDialogHelper()
@@ -147,11 +174,6 @@ EOF
     protected function getFormatterHelper()
     {
         return $this->getHelperSet()->get('formatter');
-    }
-
-    protected function getQuestion($question, $default)
-    {
-        return sprintf('<info>%s</info> [<comment>%s</comment>]: ', $question, $default);
     }
 
     protected function getConfigFile($file)

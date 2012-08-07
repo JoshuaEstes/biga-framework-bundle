@@ -135,28 +135,16 @@ class Validators
 
     public static function validateMailerHost($host)
     {
-        if (empty($host)) {
-            throw new \InvalidArgumentException('Invalid');
-        }
-
         return $host;
     }
 
     public static function validateMailerUsername($username)
     {
-        if (empty($username)) {
-            throw new \InvalidArgumentException('Invalid');
-        }
-
         return $username;
     }
 
     public static function validateMailerPassword($password)
     {
-        if (empty($password)) {
-            throw new \InvalidArgumentException('Invalid');
-        }
-
         return $password;
     }
 
