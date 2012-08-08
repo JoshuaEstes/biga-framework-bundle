@@ -111,4 +111,12 @@ class ValidatorsTest extends \PHPUnit_Framework_TestCase
         $this->assertEquals('en', Validators::validateLocale('en'));
     }
 
+    /**
+     * @expectedException InvalidArgumentException
+     */
+    public function testInvalidLocale()
+    {
+        Validators::validateLocale('asdfasdf');
+    }
+
 }

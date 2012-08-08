@@ -9,6 +9,8 @@
 
 namespace BigaFrameworkBundle\Command;
 
+use Symfony\Component\Locale\Locale;
+
 /**
  * Validators that check user input from the Commands
  *
@@ -152,6 +154,10 @@ class Validators
     {
         if (empty($locale)) {
             throw new \InvalidArgumentException('Invalid');
+        }
+
+        if (!in_array($locale, Locale::getLocales())) {
+            throw new \InvalidArgumentException('Invalid locale, please enter another');
         }
 
         return $locale;
