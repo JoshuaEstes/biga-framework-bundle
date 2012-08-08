@@ -26,6 +26,7 @@
     },
     "require-dev": {
         "symfony/console": "dev-master",
+        "symfony/locale": "dev-master",
         "symfony/process": "dev-master",
         "sensio/generator-bundle": "dev-master",
         "mikey179/vfsStream": "dev-master"
