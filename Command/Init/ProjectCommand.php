@@ -149,14 +149,17 @@ EOF
             $this
                 ->getApplication()
                 ->find('apache:vhost:create')
-                ->run($input, $output);
+                ->run(new ArrayInput(array(
+                    'command'    => 'apache:vhost:create',
+                    '--use_sudo' => true,
+                )), $output);
             if ($dialog->askConfirmation($output, $dialog->getQuestion('Do you want to restart apache', 'yes', '?'), true)) {
                 $this
                     ->getApplication()
                     ->find('apache:restart')
                     ->run(new ArrayInput(array(
                         'command' => 'apache:restart',
-                        '-n' => true,
+                        '-n'      => true,
                     )), $output);
             }
         }

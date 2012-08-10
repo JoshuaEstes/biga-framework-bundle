@@ -25,6 +25,9 @@ use Symfony\Component\Process\Process;
 class CreateCommand extends ContainerAwareCommand
 {
 
+    /**
+     * {@inheritdoc}
+     */
     protected function configure()
     {
         $this
@@ -35,16 +38,32 @@ class CreateCommand extends ContainerAwareCommand
                 new InputOption('priority', '', InputOption::VALUE_REQUIRED, 'Priority, smaller the number the sooner it will be parsed', '000'),
                 new InputOption('sites_available_dir', '', InputOption::VALUE_REQUIRED, 'Location where you will place the vhost file', '/etc/apache2/sites-enabled'),
                 new InputOption('restart', '', InputOption::VALUE_NONE, 'Restarts apache after you create the vhost'),
+                new InputOption('use_sudo', '', InputOption::VALUE_NONE, 'use sudo to write the file'),
             ))
             ->setName('apache:vhost:create')
-            ->setDescription('Create an apache vhost file');
+            ->setDescription('Create an apache vhost file')
+            ->setHelp(<<<EOF
+
+This will create a vhost file with a default configuration for symfony2
+projects.
+
+EOF
+            );
     }
 
+    /**
+     * {@inheritdoc}
+     */
     protected function initialize(InputInterface $input, OutputInterface $output)
     {
-        $input->setOption('document_root', realpath($this->getContainer()->getParameter('kernel.root_dir') . '/../web'));
+        if (null === $input->getOption('document_root')) {
+            $input->setOption('document_root', realpath($this->getContainer()->getParameter('kernel.root_dir') . '/../web'));
+        }
     }
 
+    /**
+     * {@inheritdoc}
+     */
     protected function execute(InputInterface $input, OutputInterface $output)
     {
         foreach(array('server_name') as $option) {
@@ -60,14 +79,20 @@ class CreateCommand extends ContainerAwareCommand
             '%document_root%' => $input->getOption('document_root'),
         ));
 
-        file_put_contents('/tmp/symfony2.vhost', $vhost);
-
-        $command = sprintf('sudo cp /tmp/symfony2.vhost %s/%s', $input->getOption('sites_available_dir'), $input->getOption('server_name'));
-        $process = new Process($command);
-        $process->run(function($type, $buffer) use($output){
-            $style = 'err' === $type ? 'error' : 'info';
-            $output->writeln(sprintf("<%s>%s</%s>", $style, $buffer, $style));
-        });
+        $outputFile = sprintf('%s/%s-%s', $input->getOption('sites_available_dir'), $input->getOption('priority'), $input->getOption('server_name'));
+        if ($input->getOption('use_sudo')) {
+            $tempFile = sprintf('%s/symfony2.vhost', sys_get_temp_dir());
+            file_put_contents($tempFile, $vhost);
+            $command = sprintf('sudo cp %s %s', $tempFile, $outputFile);
+            $process = new Process($command);
+            $process->run(function($type, $buffer) use($output){
+                $style = 'err' === $type ? 'error' : 'info';
+                $output->writeln(sprintf("<%s>%s</%s>", $style, $buffer, $style));
+            });
+            unlink($tempFile);
+        } else {
+            file_put_contents($outputFile, $vhost);
+        }
 
         if ($input->getOption('restart')) {
             $this
@@ -77,6 +102,9 @@ class CreateCommand extends ContainerAwareCommand
         }
     }
 
+    /**
+     * {@inheritdoc}
+     */
     protected function interact(InputInterface $input, OutputInterface $output)
     {
         $dialog    = $this->getDialogHelper();

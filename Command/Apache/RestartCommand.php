@@ -22,13 +22,25 @@ use Symfony\Component\Process\Process;
 class RestartCommand extends ContainerAwareCommand
 {
 
+    /**
+     * {@inheritdoc}
+     */
     protected function configure()
     {
         $this
             ->setName('apache:restart')
-            ->setDescription('Restart Apache web server');
+            ->setDescription('Restart Apache web server')
+            ->setHelp(<<<EOF
+
+This command will restart apache2 web server.
+
+EOF
+            );
     }
 
+    /**
+     * {@inheritdoc}
+     */
     protected function execute(InputInterface $input, OutputInterface $output)
     {
         $dialog = $this->getDialogHelper();
