@@ -10,10 +10,11 @@
 namespace BigaFrameworkBundle\Command\Configure;
 
 use Symfony\Bundle\FrameworkBundle\Command\ContainerAwareCommand;
-use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
+use Symfony\Component\Validator\Validation;
+use Symfony\Component\Validator\Constraints as Assert;
 use Symfony\Component\Yaml\Yaml;
 
 /**
@@ -24,6 +25,9 @@ use Symfony\Component\Yaml\Yaml;
 class DatabaseCommand extends ContainerAwareCommand
 {
 
+    /**
+     * {@inheritdoc}
+     */
     protected function configure()
     {
         $this
@@ -42,6 +46,9 @@ EOF
             );
     }
 
+    /**
+     * {@inheritdoc}
+     */
     protected function execute(InputInterface $input, OutputInterface $output)
     {
         foreach(array('password') as $option) {
@@ -67,15 +74,22 @@ EOF
 
         file_put_contents($parametersFile, Yaml::dump($parametersArray));
 
-        $output->writeln('Parameters file has been updated.');
+        $output->writeln(array(
+            '',
+            'Parameters file has been updated.',
+            '',
+        ));
     }
 
+    /**
+     * {@inheritdoc}
+     */
     protected function interact(InputInterface $input, OutputInterface $output)
     {
         $dialog    = $this->getDialogHelper();
-        $formatter = $this->getFormatterHelper();
+        $validator = Validation::createValidator();
 
-        $output->writeln(array('',$formatter->formatBlock('Biga Database Configurator', 'bg=blue;fg=white', true),''));
+        $dialog->writeSection($output, 'Biga Database Configurator');
 
         /**
          * This is used to setup the Doctrine database, in the future this will need
@@ -85,11 +99,23 @@ EOF
         // Database Driver
         $output->writeln(array(
             '',
-            'The database driver',
+            'The database driver, the currnetly support drivers are:',
+            '',
+            '<comment>pdo_mysql</comment> - MySQL',
+            '<comment>pdo_sqlite</comment> - SQLite',
+            '<comment>pdo_pgsql</comment> - PostgreSQL',
+            '<comment>pdo_oci</comment> - Oracle (may cause issues)',
+            '<comment>pdo_sqlsrv</comment> - MSSQL',
+            '<comment>oci8</comment> - Oracle',
             '',
         ));
 
-        $driver = $dialog->askAndValidate($output, $this->getQuestion("Database Driver", $input->getOption('driver')), 'BigaFrameworkBundle\\Command\\Validators::validateDatabaseDriver', false, $input->getOption('driver'));
+        $driver = $dialog->askAndValidate($output, $dialog->getQuestion("Database Driver", $input->getOption('driver')), function($value) {
+            if (!in_array(array('pdo_mysql', 'pdo_sqlite', 'pdo_pgsql', 'pdo_oci', 'pdo_sqlsrv', 'oci8'), $value)) {
+                throw new \InvalidArgumentException('Invalid database driver');
+            }
+            return $value;
+        }, false, $input->getOption('driver'));
         $input->setOption('driver', $driver);
 
         // Database host
@@ -99,7 +125,13 @@ EOF
             '',
         ));
 
-        $host = $dialog->askAndValidate($output, $this->getQuestion("Database Host", $input->getOption('host')), 'BigaFrameworkBundle\\Command\\Validators::validateDatabaseHost', false, $input->getOption('host'));
+        $host = $dialog->askAndValidate($output, $dialog->getQuestion("Database Host", $input->getOption('host')), function ($value) use($validator) {
+            $errors = $validator->validateValue($value, new Assert\NotBlank());
+            if (count($errors)) {
+                throw new \InvalidArgumentException(trim(str_replace(":\n", ":", (string) $errors)));
+            }
+            return $value;
+        }, false, $input->getOption('host'));
         $input->setOption('host', $host);
 
         // Database Port
@@ -109,7 +141,13 @@ EOF
             '',
         ));
 
-        $port = $dialog->askAndValidate($output, $this->getQuestion("Database Port", $input->getOption('port')), 'BigaFrameworkBundle\\Command\\Validators::validateDatabasePort', false, $input->getOption('port'));
+        $port = $dialog->askAndValidate($output, $dialog->getQuestion("Database Port", $input->getOption('port')), function($value) use($validator) {
+            $errors = $validator->validateValue($value, new Assert\Type('numeric'));
+            if (count($errors)) {
+                throw new \InvalidArgumentException(trim(str_replace(":\n", ":", (string) $errors)));
+            }
+            return $value;
+        }, false, $input->getOption('port'));
         $input->setOption('port', $port);
 
         // Database Name
@@ -119,43 +157,56 @@ EOF
             '',
         ));
 
-        $name = $dialog->askAndValidate($output, $this->getQuestion("Database Name", $input->getOption('name')), 'BigaFrameworkBundle\\Command\\Validators::validateDatabaseName', false, $input->getOption('name'));
+        $name = $dialog->askAndValidate($output, $dialog->getQuestion("Database Name", $input->getOption('name')), function($value) use($validator) {
+            $errors = $validator->validateValue($value, new Assert\NotBlank());
+            if (count($errors)) {
+                throw new \InvalidArgumentException(trim(str_replace(":\n", ":", (string) $errors)));
+            }
+            return $value;
+        }, false, $input->getOption('name'));
         $input->setOption('name', $name);
 
         // Database User
         $output->writeln(array(
             '',
-            '',
+            'Username that you want to use to log into the database',
             '',
         ));
 
-        $user = $dialog->askAndValidate($output, $this->getQuestion("Database Username", $input->getOption('user')), 'BigaFrameworkBundle\\Command\\Validators::validateDatabaseUsername', false, $input->getOption('user'));
+        $user = $dialog->askAndValidate($output, $dialog->getQuestion("Database Username", $input->getOption('user')), function($value) use($validator) {
+            $errors = $validator->validateValue($value, new Assert\NotBlank());
+            if (count($errors)) {
+                throw new \InvalidArgumentException(trim(str_replace(":\n", ":", (string) $errors)));
+            }
+            return $value;
+        }, false, $input->getOption('user'));
         $input->setOption('user', $user);
 
         // Database Password
         $output->writeln(array(
             '',
-            '',
+            'Password for the user. If this is blank it may cause database issues',
+            'so this is required.',
             '',
         ));
 
-        $password = $dialog->askAndValidate($output, $this->getQuestion("Database Password", $input->getOption('password')), 'BigaFrameworkBundle\\Command\\Validators::validateDatabasePassword', false, $input->getOption('password'));
+        $password = $dialog->askAndValidate($output, $dialog->getQuestion("Database Password", $input->getOption('password')), function($value) use($validator) {
+            $errors = $validator->validateValue($value, new Assert\NotBlank());
+            if (count($errors)) {
+                throw new \InvalidArgumentException(trim(str_replace(":\n", ":", (string) $errors)));
+            }
+            return $value;
+        }, false, $input->getOption('password'));
         $input->setOption('password', $password);
     }
 
     protected function getDialogHelper()
     {
-        return $this->getHelperSet()->get('dialog');
-    }
-
-    protected function getFormatterHelper()
-    {
-        return $this->getHelperSet()->get('formatter');
-    }
-
-    protected function getQuestion($question, $default)
-    {
-        return sprintf('<info>%s</info> [<comment>%s</comment>]: ', $question, $default);
+        $dialog = $this->getHelperSet()->get('dialog');
+        if (!$dialog || get_class($dialog) !== 'BigaFrameworkBundle\Helper\DialogHelper') {
+            $this->getHelperSet()->set($dialog = new \BigaFrameworkBundle\Helper\DialogHelper());
+        }
+        return $dialog;
     }
 
 }
