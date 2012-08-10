@@ -111,7 +111,7 @@ EOF
         ));
 
         $driver = $dialog->askAndValidate($output, $dialog->getQuestion("Database Driver", $input->getOption('driver')), function($value) {
-            if (!in_array(array('pdo_mysql', 'pdo_sqlite', 'pdo_pgsql', 'pdo_oci', 'pdo_sqlsrv', 'oci8'), $value)) {
+            if (!in_array($value, array('pdo_mysql', 'pdo_sqlite', 'pdo_pgsql', 'pdo_oci', 'pdo_sqlsrv', 'oci8'))) {
                 throw new \InvalidArgumentException('Invalid database driver');
             }
             return $value;
