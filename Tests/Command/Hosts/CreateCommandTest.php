@@ -41,7 +41,6 @@ class CreateCommandTest extends \PHPUnit_Framework_TestCase
             'command'          => 'hosts:create',
             '--hosts_file'     => vfsStream::url('etc/hosts'),
             '--host'           => 'biga.local',
-            '--no_sudo'        => true,
         ), array(
             'interactive' => false
         ));
