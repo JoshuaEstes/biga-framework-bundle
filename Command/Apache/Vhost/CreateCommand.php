@@ -10,12 +10,13 @@
 namespace BigaFrameworkBundle\Command\Apache\Vhost;
 
 use Symfony\Bundle\FrameworkBundle\Command\ContainerAwareCommand;
-use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Input\ArrayInput;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Process\Process;
+use Symfony\Component\Validator\Validation;
+use Symfony\Component\Validator\Constraints as Assert;
 
 /**
  * Create an apache vhost and place it into the sites enabled directory.
@@ -108,9 +109,9 @@ EOF
     protected function interact(InputInterface $input, OutputInterface $output)
     {
         $dialog    = $this->getDialogHelper();
-        $formatter = $this->getFormatterHelper();
+        $validator = Validation::createValidator();
 
-        $output->writeln(array('',$formatter->formatBlock('Biga VHost Manager', 'bg=blue;fg=white', true),''));
+        $dialog->writeSection($output, 'Biga Apache vhost Creator');
 
         // Server Name
         $output->writeln(array(
@@ -120,7 +121,13 @@ EOF
             '',
         ));
 
-        $server_name = $dialog->askandValidate($output, $this->getQuestion("ServerName", $input->getOption('server_name')), 'BigaFrameworkBundle\\Command\\Validators::validateHost', false, $input->getOption('server_name'));
+        $server_name = $dialog->askandValidate($output, $dialog->getQuestion("ServerName", $input->getOption('server_name')), function($value) use($validator) {
+            $errors = $validator->validateValue($value, new Assert\NotBlank());
+            if (count($errors)) {
+                throw new \InvalidArgumentException(trim(str_replace(":\n", ":", (string) $errors)));
+            }
+            return $value;
+        }, false, $input->getOption('server_name'));
         $input->setOption('server_name', $server_name);
 
         // Port
@@ -130,7 +137,13 @@ EOF
             '',
         ));
 
-        $port = $dialog->askAndValidate($output, $this->getQuestion("Port", $input->getOption('port')), 'BigaFrameworkBundle\\Command\\Validators::validatePort', false, $input->getOption('port'));
+        $port = $dialog->askAndValidate($output, $dialog->getQuestion("Port", $input->getOption('port')), function($value) use($validator) {
+            $errors = $validator->validateValue($value, new Assert\Type('numeric'));
+            if (count($errors)) {
+                throw new \InvalidArgumentException(trim(str_replace(":\n", ":", (string) $errors)));
+            }
+            return $value;
+        }, false, $input->getOption('port'));
         $input->setOption('port', $port);
 
         // Document Root
@@ -140,7 +153,12 @@ EOF
             '',
         ));
 
-        $document_root = $dialog->askAndValidate($output, $this->getQuestion("DocumentRoot", $input->getOption('document_root')), 'BigaFrameworkBundle\\Command\\Validators::validateDocumentRoot', false, $input->getOption('document_root'));
+        $document_root = $dialog->askAndValidate($output, $dialog->getQuestion("DocumentRoot", $input->getOption('document_root')), function($value) {
+            if (!is_dir($value)) {
+                throw new \InvalidArgumentException('Cannot find directory.');
+            }
+            return $value;
+        }, false, $input->getOption('document_root'));
         $input->setOption('document_root', $document_root);
 
         // Priority
@@ -151,23 +169,23 @@ EOF
             '',
         ));
 
-        $priority = $dialog->askAndValidate($output, $this->getQuestion("Priority", $input->getOption('priority')), 'BigaFrameworkBundle\\Command\\Validators::validatePriority', false, $input->getOption('priority'));
+        $priority = $dialog->askAndValidate($output, $dialog->getQuestion("Priority", $input->getOption('priority')), function($value) use($validator) {
+            $errors = $validator->validateValue($value, new Assert\Type('numeric'));
+            if (count($errors)) {
+                throw new \InvalidArgumentException(trim(str_replace(":\n", ":", (string) $errors)));
+            }
+            return $value;
+        }, false, $input->getOption('priority'));
         $input->setOption('priority', $priority);
     }
 
     protected function getDialogHelper()
     {
-        return $this->getHelperSet()->get('dialog');
-    }
-
-    protected function getFormatterHelper()
-    {
-        return $this->getHelperSet()->get('formatter');
-    }
-
-    protected function getQuestion($question, $default)
-    {
-        return sprintf('<info>%s</info> [<comment>%s</comment>]: ', $question, $default);
+        $dialog = $this->getHelperSet()->get('dialog');
+        if (!$dialog || get_class($dialog) !== 'BigaFrameworkBundle\Helper\DialogHelper') {
+            $this->getHelperSet()->set($dialog = new \BigaFrameworkBundle\Helper\DialogHelper());
+        }
+        return $dialog;
     }
 
 }
