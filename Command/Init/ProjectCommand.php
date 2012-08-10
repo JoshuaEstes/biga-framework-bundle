@@ -70,7 +70,6 @@ EOF
     protected function execute(InputInterface $input, OutputInterface $output)
     {
         $dialog     = $this->getDialogHelper();
-        $formatter  = $this->getFormatterHelper();
         $parameters = Yaml::parse(file_get_contents($this->getConfigFile('parameters.yml')));
 
         $dialog->writeSection($output, 'Biga Initialize Project');
@@ -163,6 +162,25 @@ EOF
                     )), $output);
             }
         }
+
+        // hosts file
+        $output->writeln(array(
+            '',
+            'Updating your hosts file will allow you to type the url into your browser and it',
+            'will use your hosts file to resolve that hostname.',
+            '',
+        ));
+
+        if ($dialog->askConfirmation($output, $dialog->getQuestion('Do you want to update your hosts file', 'yes', '?'), true)) {
+            $this
+                ->getApplication()
+                ->find('hosts:create')
+                ->run(new ArrayInput(array(
+                    'command'    => 'hosts:create',
+                    '--use_sudo' => true,
+                )), $output);
+        }
+
     }
 
     protected function getDialogHelper()
@@ -172,11 +190,6 @@ EOF
             $this->getHelperSet()->set($dialog = new \BigaFrameworkBundle\Helper\DialogHelper());
         }
         return $dialog;
-    }
-
-    protected function getFormatterHelper()
-    {
-        return $this->getHelperSet()->get('formatter');
     }
 
     protected function getConfigFile($file)
