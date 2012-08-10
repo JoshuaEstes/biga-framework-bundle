@@ -53,11 +53,12 @@ EOF
         }
 
         $process = new Process(<<<EOF
+bash -i -c "
 if [ -e /etc/init.d/apache2 ]; then
     sudo /etc/init.d/apache2 restart
 elif [ "$(which apachectl)" ]; then
     sudo $(which apachectl) -k restart
-fi
+fi"
 EOF
 );
         $process->run(function($type, $buffer) use($output) {
