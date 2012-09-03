@@ -17,7 +17,7 @@ class %controller.class_name% extends Controller
     public function indexAction()
     {
         $response = new Response();
-        //$response->setVary(array('Accept-Encoding'));
+        //$response->setVary(array('Accept-Encoding', 'User-Agent'));
         $response->setContent($this->renderView('::index.html.twig'));
         return $response;
     }
