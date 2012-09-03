@@ -128,7 +128,7 @@ class ControllerCommand extends ContainerAwareCommand
             $filesystem->mkdir($controllerPath);
         }
 
-        $filename = ucfirst(strtolower($input->getOption('name')));
+        $filename = $input->getOption('name');
         $filename .= 'Controller.php';
         $filesystem->touch($controllerPath . '/' . $filename);
 
