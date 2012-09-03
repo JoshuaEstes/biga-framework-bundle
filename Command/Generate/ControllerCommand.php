@@ -142,7 +142,7 @@ class ControllerCommand extends ContainerAwareCommand
 
         $output->writeln(array(
             '',
-            '<info>Command has been created</info>',
+            '<info>Controller has been created</info>',
             '',
         ));
     }
