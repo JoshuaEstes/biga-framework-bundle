@@ -128,7 +128,7 @@ class ControllerCommand extends ContainerAwareCommand
             $filesystem->mkdir($controllerPath);
         }
 
-        $filename = ucfirst(strtolower($input->getOption('name')));
+        $filename = $input->getOption('name');
         $filename .= 'Controller.php';
         $filesystem->touch($controllerPath . '/' . $filename);
 
@@ -142,7 +142,7 @@ class ControllerCommand extends ContainerAwareCommand
 
         $output->writeln(array(
             '',
-            '<info>Command has been created</info>',
+            '<info>Controller has been created</info>',
             '',
         ));
     }
