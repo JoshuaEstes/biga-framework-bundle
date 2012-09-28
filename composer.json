@@ -6,6 +6,11 @@
     "homepage": "https://github.com/JoshuaEstes/biga-framework-bundle",
     "license": "MIT",
     "minimum-stability": "dev",
+    "extra": {
+        "branch-alias": {
+            "dev-master": "2.2.x-dev"
+        }
+    }
     "authors": [
         {
             "name": "Joshua Estes",
@@ -22,12 +27,13 @@
     },
     "require": {
         "php": ">=5.3.3",
-        "symfony/framework-bundle": "2.1.*"
+        "symfony/framework-bundle": "2.2.*"
     },
     "require-dev": {
-        "symfony/console": "dev-master",
-        "symfony/locale": "dev-master",
-        "symfony/process": "dev-master",
+        "phpunit/phpunit": "dev-master",
+        "symfony/console": "2.2.*",
+        "symfony/locale": "2.2.*",
+        "symfony/process": "2.2.*",
         "sensio/generator-bundle": "dev-master",
         "mikey179/vfsStream": "dev-master"
     },
