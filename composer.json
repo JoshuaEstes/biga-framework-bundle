@@ -29,7 +29,6 @@
         "php": ">=5.3.3"
     },
     "require-dev": {
-        "phpunit/phpunit": "*",
         "symfony/symfony": "2.2.*",
         "mikey179/vfsStream": "dev-master"
     },
