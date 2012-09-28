@@ -26,15 +26,11 @@
         "source": "https://github.com/JoshuaEstes/biga-framework-bundle"
     },
     "require": {
-        "php": ">=5.3.3",
-        "symfony/framework-bundle": "2.2.*"
+        "php": ">=5.3.3"
     },
     "require-dev": {
-        "phpunit/phpunit": "dev-master",
-        "symfony/console": "2.2.*",
-        "symfony/locale": "2.2.*",
-        "symfony/process": "2.2.*",
-        "sensio/generator-bundle": "dev-master",
+        "phpunit/phpunit": "*",
+        "symfony/symfony": "2.2.*",
         "mikey179/vfsStream": "dev-master"
     },
     "autoload": {
