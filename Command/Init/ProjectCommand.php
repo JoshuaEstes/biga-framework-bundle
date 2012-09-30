@@ -56,10 +56,14 @@ EOF
         }
 
         // This will ignore changes to your parameters.yml file
+        // @todo ProcessBuilder
         $process = new Process('git update-index --assume-unchanged app/config/parameters.yml');
         $process->run();
 
         // Make sure the directories are set to correct permissions
+        // @todo ProcessBuilder
+        // @todo Move this into it's own command like the previous 1.4 command
+        //       that set the permissions on the folders and files
         $process = new Process(sprintf('chmod 0777 app/{cache,log}'));
         $process->run();
     }
@@ -176,8 +180,7 @@ EOF
                 ->getApplication()
                 ->find('hosts:create')
                 ->run(new ArrayInput(array(
-                    'command'    => 'hosts:create',
-                    '--use_sudo' => true,
+                    'command' => 'hosts:create',
                 )), $output);
         }
 
