@@ -2,7 +2,7 @@
     "name": "joshuaestes/biga-framework-bundle",
     "type": "symfony-bundle",
     "description": "BigaFrameworkBundle for Symfony Biga Edition",
-    "keywords": ["biga","symfony2","framework"],
+    "keywords": ["biga","symfony2","framework","distribution"],
     "homepage": "https://github.com/JoshuaEstes/biga-framework-bundle",
     "license": "MIT",
     "minimum-stability": "dev",
