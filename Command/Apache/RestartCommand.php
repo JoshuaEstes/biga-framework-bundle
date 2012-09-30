@@ -52,6 +52,7 @@ EOF
             }
         }
 
+        // Let's play find that apache2!
         $process = new Process(<<<EOF
 bash -i -c "
 if [ -e /etc/init.d/apache2 ]; then
@@ -62,10 +63,7 @@ fi"
 EOF
 );
         $process->run(function($type, $buffer) use($output) {
-            $style = 'info';
-            if ('err' === $type) {
-                $style = 'error';
-            }
+            $style = ('err' === $type) ? 'error' : 'info';
             $output->writeln(sprintf('<%s>%s</%s>', $style, $buffer, $style));
         });
     }
