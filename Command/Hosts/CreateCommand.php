@@ -14,7 +14,6 @@ use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Process\Process;
-use Symfony\Component\Validator\Validation;
 use Symfony\Component\Validator\Constraints as Assert;
 
 /**
@@ -32,10 +31,9 @@ class CreateCommand extends ContainerAwareCommand
     {
         $this
             ->setDefinition(array(
-                new InputOption('hosts_file', '', InputOption::VALUE_REQUIRED, 'Path to your hosts file, this is different for every OS', '/etc/hosts'),
-                new InputOption('ip_address', '', InputOption::VALUE_REQUIRED, 'IP Address of the server', '127.0.0.1'),
+                new InputOption('hosts-file', '', InputOption::VALUE_REQUIRED, 'Path to your hosts file, this is different for every OS', '/etc/hosts'),
+                new InputOption('ip', '', InputOption::VALUE_REQUIRED, 'IP Address of the server', '127.0.0.1'),
                 new InputOption('host', '', InputOption::VALUE_REQUIRED, 'The host name you want. If you want more than one, please use a space between them'),
-                new InputOption('use_sudo', '', InputOption::VALUE_NONE, 'Append the file using sudo.'),
             ))
             ->setName('hosts:create')
             ->setDescription('Add an entry in your hosts file')
@@ -46,10 +44,7 @@ to use the host file in the location that is default on Mac
 and linux machines. If you are on a windows machine, you will
 need to give it a different hosts file location.
 
-If you need to have admistrator access, you must use the --use_sudo
-option.
-
-    <info>php app/console hosts:create --use_sudo</info>
+You must have sudo access to be able to update the hosts file.
 
 EOF
             );
@@ -66,20 +61,18 @@ EOF
             }
         }
 
-        if ($input->getOption('use_sudo')) {
-            $command = sprintf("echo \"%s %s\" | sudo tee -a %s", $input->getOption('ip_address'), $input->getOption('host'), $input->getOption('hosts_file'));
+        if (is_writeable($input->getOption('hosts-file'))) {
+            $handle = fopen($input->getOption('hosts-file'), 'a', false);
+            fwrite($handle, sprintf("%s %s", $input->getOption('ip'), $input->getOption('host')));
+            fclose($handle);
+        } else {
+            // @todo Make this a ProcessBuilder
+            $command = sprintf("echo \"%s %s\" | sudo tee -a %s", $input->getOption('ip'), $input->getOption('host'), $input->getOption('hosts-file'));
             $process = new Process($command);
             $process->run(function($type, $buffer) use($output){
                 $style = 'err' === $type ? 'error' : 'info';
                 $output->writeln(sprintf("<%s>%s</%s>", $style, $buffer, $style));
             });
-        } else {
-            if (!is_writeable($input->getOption('hosts_file'))) {
-                throw new \RuntimeException('Cannot write to file.');
-            }
-            $handle = fopen($input->getOption('hosts_file'), 'a', false);
-            fwrite($handle, sprintf("%s %s", $input->getOption('ip_address'), $input->getOption('host')));
-            fclose($handle);
         }
     }
 
@@ -89,7 +82,7 @@ EOF
     protected function interact(InputInterface $input, OutputInterface $output)
     {
         $dialog    = $this->getDialogHelper();
-        $validator = Validation::createValidator();
+        $validator = $this->container->get('validator');
 
         $dialog->writeSection($output, 'Biga Host File Management');
 
@@ -102,13 +95,13 @@ EOF
             '',
         ));
 
-        $hosts_file = $dialog->askAndValidate($output, $dialog->getQuestion("Location of hosts file", $input->getOption('hosts_file')), function($value) {
+        $hosts_file = $dialog->askAndValidate($output, $dialog->getQuestion("Location of hosts file", $input->getOption('hosts-file')), function($value) {
             if (!is_file($value)) {
                 throw new \InvalidArgumentException('Cannot find hosts file');
             }
             return $value;
-        }, false, $input->getOption('hosts_file'));
-        $input->setOption('hosts_file', $hosts_file);
+        }, false, $input->getOption('hosts-file'));
+        $input->setOption('hosts-file', $hosts_file);
 
         // IP Address
         $output->writeln(array(
@@ -116,14 +109,14 @@ EOF
             'Enter the IP Address, this can be any valid IP address.',
             '',
         ));
-        $ip_address = $dialog->askAndValidate($output, $dialog->getQuestion("IP Address", $input->getOption('ip_address')), function($value) use($validator) {
+        $ip_address = $dialog->askAndValidate($output, $dialog->getQuestion("IP Address", $input->getOption('ip')), function($value) use($validator) {
             $errors = $validator->validateValue($value, new Assert\Ip(array('version' => 'all')));
             if (count($errors)) {
                 throw new \InvalidArgumentException(trim(str_replace(":\n", ":", (string) $errors)));
             }
             return $value;
-        }, false, $input->getOption('ip_address'));
-        $input->setOption('ip_address', $ip_address);
+        }, false, $input->getOption('ip'));
+        $input->setOption('ip', $ip_address);
 
         // host
         $output->writeln(array(
@@ -144,6 +137,9 @@ EOF
         $input->setOption('host', $host);
     }
 
+    /**
+     * @return \BigaFrameworkBundle\Helper\DialogHelper
+     */
     protected function getDialogHelper()
     {
         $dialog = $this->getHelperSet()->get('dialog');
